@@ -3,13 +3,24 @@ package main
 import (
 	"html/template"
 	"path/filepath"
+	"time"
 
 	"github.com/acdlee/SnippetBox/internal/models"
 )
 
 type templateData struct {
-	Snippet  models.Snippet
-	Snippets []models.Snippet
+	CurrentYear int
+	Snippet     models.Snippet
+	Snippets    []models.Snippet
+}
+
+// Return a nicely formatted string respresentation of a time.Time value
+func humanDate(t time.Time) string {
+	return t.Format("02 Jan 2006 at 15:04")
+}
+
+var functions = template.FuncMap{
+	"humanDate": humanDate,
 }
 
 // Returns an in-memory map to cache parsed templates.
@@ -27,7 +38,8 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	for _, page := range pages {
 		name := filepath.Base(page)
 
-		ts, err := template.ParseFiles("./ui/html/base.tmpl.html")
+		// Create a new template set -> register functions -> parse file
+		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl.html")
 		if err != nil {
 			return nil, err
 		}
